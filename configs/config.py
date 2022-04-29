@@ -28,7 +28,7 @@ dataloader.train = LazyCall(build_nlp_train_loader)(
             task_name="cner",
             data_dir="/workspace/CQL_BERT/libai/projects/text_classification/clue_data/cner/cner",
             tokenizer=tokenization.tokenizer,
-            max_seq_length=128,
+            max_seq_length=512,
             mode="train",
         ),
     ],
@@ -55,7 +55,7 @@ model_cfg.update(
         hidden_layers=24,
         num_attention_heads=16,
         # new key
-        num_classes=2,
+        num_classes=23,
         pretrain_megatron_weight=None,
     )
 )

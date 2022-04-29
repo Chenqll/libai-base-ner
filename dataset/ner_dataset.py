@@ -1,18 +1,3 @@
-# coding=utf-8
-# Copyright 2021 The OneFlow Authors. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 import os
 import pdb
@@ -28,7 +13,6 @@ from libai.data.structures import DistTensorData, Instance
 
 from .utils import EncodePattern
 from .utils_clue import clue_convert_examples_to_features, clue_output_modes, clue_processors
-import pdb
 
 logger = logging.getLogger(__name__)
 
@@ -71,60 +55,48 @@ class ClueDataset(Dataset):
         # and the others will use the cache.
         lock_path = cached_features_file + ".lock"
         with FileLock(lock_path):
+         
+            logger.info(f"Creating features from dataset file at {data_dir}")
 
-            if os.path.exists(cached_features_file) and not overwrite_cache:
-                start = time.time()
-                self.features = flow.load(cached_features_file)
-                logger.info(
-                    f"Loading features from cached file {cached_features_file} [took %.3f s]",
-                    time.time() - start,
-                )
+            if mode == Split.dev:
+                examples = self.processor.get_dev_examples(data_dir)
+            elif mode == Split.test:
+                examples = self.processor.get_test_examples(data_dir)
             else:
-                logger.info(f"Creating features from dataset file at {data_dir}")
+                examples = self.processor.get_train_examples(data_dir)
 
-                if mode == Split.dev:
-                    examples = self.processor.get_dev_examples(data_dir)
-                elif mode == Split.test:
-                    examples = self.processor.get_test_examples(data_dir)
-                else:
-                    examples = self.processor.get_train_examples(data_dir)
-                
-
-                self.features = clue_convert_examples_to_features(
-                    examples,
-                    tokenizer,
-                    max_length=max_seq_length,
-                    pattern=pattern,
-                    label_list=label_list,
-                    output_mode=self.output_mode,
-                )
-                start = time.time()
-                flow.save(self.features, cached_features_file)
-                logger.info(
-                    f"Saving features into cached file {cached_features_file} "
-                    f"[took {time.time() - start:.3f} s]"
-                )
+    
+            self.features = clue_convert_examples_to_features(
+                examples,
+                tokenizer,
+                max_length=max_seq_length,
+                pattern=pattern,
+                label_list=label_list,
+                output_mode=self.output_mode,
+            )
+         
+            start = time.time()
+            flow.save(self.features, cached_features_file)
+            logger.info(
+                f"Saving features into cached file {cached_features_file} "
+                f"[took {time.time() - start:.3f} s]"
+            )
+            
 
     def __len__(self):
         return len(self.features)
     
 
-
     # 是内置函数，可以使得外界应用DataSet类后能迭代dataset这个类，返回sample
     def __getitem__(self, i):
         feature = self.features[i]
-        tensors = {}
-        for k, v in feature.__dict__.items():
-            if v is not None:
-                if k == "labels":
-                    dtype = flow.long if isinstance(v, int) else flow.float
-                    t = flow.tensor(v, dtype=dtype)
-                    tensors[k] = DistTensorData(t, placement_idx=-1)
-                else:
-                    t = flow.tensor(v, dtype=flow.long)
-                    tensors[k] = DistTensorData(t)
-        sample = Instance(**tensors)
-        return sample
+        return Instance(
+            input_ids = DistTensorData(flow.tensor(feature.input_ids, dtype=flow.long)),
+            attention_mask = DistTensorData(flow.tensor(feature.attention_mask, dtype=flow.long)),
+            token_type_ids = DistTensorData(flow.tensor(feature.token_type_ids, dtype=flow.long)),
+            labels = DistTensorData(flow.tensor(feature.labels, dtype=flow.long)),
+        )
+       
 
     def get_labels(self):
         return self.label_list

@@ -1,18 +1,3 @@
-# coding=utf-8
-# Copyright 2021 The OneFlow Authors. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 import os
 import pdb
@@ -40,6 +25,7 @@ def clue_convert_examples_to_features(
             output_mode = clue_output_modes[task]
             logger.info(f"Using output mode {output_mode} for task {task}")
 
+
     label_map = {label: i for i, label in enumerate(label_list)}
 
     start_token = [] if tokenizer.start_token is None else [tokenizer.start_token]
@@ -56,9 +42,12 @@ def clue_convert_examples_to_features(
     features = []
     for (ex_index, example) in enumerate(examples):
         if ex_index % 10000 == 0:
-            logger.info("Writing example %d of %d" % (ex_index, len(examples)))
-
+            logger.info("Writing example %d of %d", ex_index, len(examples))
+        if isinstance(example.text_a,list):
+            example.text_a = " ".join(example.text_a)
         tokens_a = tokenizer.tokenize(example.text_a)
+        label = [label_map[x] for x in example.label]
+ 
 
         tokens_b = None
         if example.text_b:
@@ -70,6 +59,7 @@ def clue_convert_examples_to_features(
 
         if pattern is EncodePattern.bert_pattern:
             tokens = start_token + tokens_a + end_token
+            label = [label_map['O']] + label+ [label_map['O']]
             token_type_ids = [0] * len(tokens)
             if tokens_b:
                 tokens += tokens_b + end_token
@@ -90,13 +80,8 @@ def clue_convert_examples_to_features(
         input_ids = input_ids + ([pad_id] * padding_length)
         attention_mask = attention_mask + ([0] * padding_length)
         token_type_ids = token_type_ids + ([0] * padding_length)
-
-        label = None
-        if example.label is not None:
-            if output_mode == "classification":
-                label = [label_map[x] for x in example.label]
-            elif output_mode == "regression":
-                label = float(example.label)
+        # 
+        label = label + ([0] * padding_length)
 
         if ex_index < 5:
             logger.info("*** Example ***")
@@ -114,6 +99,7 @@ def clue_convert_examples_to_features(
                 labels=label,
             )
         )
+       
 
     return features
 

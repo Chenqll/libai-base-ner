@@ -1,18 +1,3 @@
-# coding=utf-8
-# Copyright 2021 The OneFlow Authors. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 
 import oneflow as flow
@@ -22,6 +7,7 @@ from libai.layers import Linear
 from libai.models.bert_model import BertModel
 from libai.models.utils import init_method_normal
 from libai.utils import distributed as dist
+import pdb
 
 logger = logging.getLogger("libai." + __name__)
 
@@ -63,11 +49,14 @@ class ModelForSequenceClassification(nn.Module):
         )
         self.loss_fct = ClassificationLoss()
 
-    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
+    def forward(self, input_ids, attention_mask, token_type_ids, labels=None):
 
-        encoder_output, pooled_output = self.model(input_ids, attention_mask, token_type_ids)
-        pooled_output = self.dropout(pooled_output)
-        logits = self.classifier(pooled_output)
+        outputs= self.model(input_ids, attention_mask, token_type_ids)
+        
+        sequence_output = outputs[0]
+
+        sequence_output = self.dropout(sequence_output)
+        logits = self.classifier(sequence_output)
 
         if self.training and labels is not None:
             loss = self.loss_fct(logits.view(-1, self.num_classes), labels.view(-1))
@@ -75,3 +64,6 @@ class ModelForSequenceClassification(nn.Module):
             return loss_dict
 
         return {"prediction_scores": logits}
+
+
+
