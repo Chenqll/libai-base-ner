@@ -12,7 +12,7 @@ from oneflow.utils.data import Dataset
 from libai.data.structures import DistTensorData, Instance
 
 from .utils import EncodePattern
-from .utils_clue import clue_convert_examples_to_features, clue_output_modes, clue_processors
+from .cner_utils import cner_convert_examples_to_features, cner_output_modes, cner_processors
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class Split(Enum):
     test = "test"
 
 
-class ClueDataset(Dataset):
+class CnerDataset(Dataset):
     def __init__(
         self,
         task_name,
@@ -36,8 +36,8 @@ class ClueDataset(Dataset):
         overwrite_cache: bool = True,
     ):
        
-        self.processor = clue_processors[task_name]()
-        self.output_mode = clue_output_modes[task_name]
+        self.processor = cner_processors[task_name]()
+        self.output_mode = cner_output_modes[task_name]
         if isinstance(mode, str):
             try:
                 mode = Split[mode]
@@ -66,7 +66,7 @@ class ClueDataset(Dataset):
                 examples = self.processor.get_train_examples(data_dir)
 
     
-            self.features = clue_convert_examples_to_features(
+            self.features = cner_convert_examples_to_features(
                 examples,
                 tokenizer,
                 max_length=max_seq_length,
@@ -88,6 +88,7 @@ class ClueDataset(Dataset):
     
 
     # 是内置函数，可以使得外界应用DataSet类后能迭代dataset这个类，返回sample
+    # 需要修改返回的格式
     def __getitem__(self, i):
         feature = self.features[i]
         return Instance(

@@ -4,8 +4,8 @@ from libai.config import get_config
 from libai.config import LazyCall
 from libai.data.build import build_nlp_test_loader, build_nlp_train_loader
 from libai.tokenizer import BertTokenizer
-from projects.text_classification.modeling.model import ModelForSequenceClassification
-from projects.text_classification.dataset import ClueDataset
+from projects.token_classification.model.model import ModelForSequenceClassification
+from projects.token_classification.dataset import CnerDataset
 
 tokenization = get_config("common/data/bert_dataset.py").tokenization
 optim = get_config("common/optim.py").optim
@@ -24,9 +24,9 @@ tokenization.make_vocab_size_divisible_by = 128
 dataloader = OmegaConf.create()
 dataloader.train = LazyCall(build_nlp_train_loader)(
     dataset=[
-        LazyCall(ClueDataset)(
+        LazyCall(CnerDataset)(
             task_name="cner",
-            data_dir="/workspace/CQL_BERT/libai/projects/text_classification/clue_data/cner/cner",
+            data_dir="/workspace/CQL_BERT/libai/projects/token_classification/data/cner/cner",
             tokenizer=tokenization.tokenizer,
             max_seq_length=512,
             mode="train",
@@ -36,9 +36,9 @@ dataloader.train = LazyCall(build_nlp_train_loader)(
 )
 dataloader.test = [
     LazyCall(build_nlp_test_loader)(
-        dataset=LazyCall(ClueDataset)(
+        dataset=LazyCall(CnerDataset)(
             task_name="cner",
-            data_dir="/workspace/CQL_BERT/libai/projects/text_classification/clue_data/cner/cner",
+            data_dir="/workspace/CQL_BERT/libai/projects/token_classification/data/cner/cner",
             tokenizer=tokenization.tokenizer,
             max_seq_length=512,
             mode="dev",
