@@ -76,5 +76,8 @@ train.update(
             tensor_parallel_size=1,
             pipeline_parallel_size=1,
         ),
+        evaluation=dict(
+            enabled=False,
+        )
     )
 )
