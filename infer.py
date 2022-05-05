@@ -31,7 +31,7 @@ class GeneratorForEager:
         self.tokenizer = BertTokenizer(vocab_file)
     
     def infer(self, sentence):
-        # Encode
+        # Encodesssssss
         pdb.set_trace()
         sentence = " ".join([word for word in sentence])
         tokens_list = self.tokenizer.tokenize(sentence)
