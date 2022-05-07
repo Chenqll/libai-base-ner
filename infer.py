@@ -31,14 +31,25 @@ class GeneratorForEager:
         self.tokenizer = BertTokenizer(vocab_file)
     
     def infer(self, sentence):
-        # Encodessssssssss
-        pdb.set_trace()
         sentence = " ".join([word for word in sentence])
         tokens_list = self.tokenizer.tokenize(sentence)
-        encoder_ids_list = [self.tokenizer.bos_id] + self.tokenizer.convert_tokens_to_ids(tokens_list) + [self.tokenizer.eos_id]
+        pdb.set_trace()
+        encoder_ids_list = [] + self.tokenizer.convert_tokens_to_ids(tokens_list) + []
         seq_len = len(encoder_ids_list)
         encoder_input_ids = get_global_tensor(encoder_ids_list)
-        encoder_states = self.model.encode(encoder_input_ids, None)
+        attention_mask=[1] * seq_len
+        attention_mask=get_global_tensor(attention_mask)
+        token_type_ids= [0] * seq_len
+        token_type_ids=get_global_tensor(token_type_ids)
+        # feature=InputFeatures(
+        #         input_ids=encoder_input_ids,
+        #         attention_mask=attention_mask,
+        #         token_type_ids=token_type_ids,
+        #         labels=None,
+        #     )
+        encoder_states = self.model(encoder_input_ids,attention_mask,token_type_ids,None)
+        encoder_states=encoder_states['prediction_scores']
+        encoder_states=encoder_states.view(-1, 23)
 
 if __name__ == "__main__":
     config_file = "/workspace/CQL_BERT/libai/output/benchmark/token/config.yaml"
