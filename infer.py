@@ -41,12 +41,7 @@ class GeneratorForEager:
         attention_mask=get_global_tensor(attention_mask)
         token_type_ids= [0] * seq_len
         token_type_ids=get_global_tensor(token_type_ids)
-        # feature=InputFeatures(
-        #         input_ids=encoder_input_ids,
-        #         attention_mask=attention_mask,
-        #         token_type_ids=token_type_ids,
-        #         labels=None,
-        #     )
+        # 有问题，输出都是第17个类
         encoder_states = self.model(encoder_input_ids,attention_mask,token_type_ids,None)
         encoder_states=encoder_states['prediction_scores']
         encoder_states=encoder_states.view(-1, 23)
