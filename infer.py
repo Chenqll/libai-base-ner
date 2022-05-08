@@ -37,6 +37,17 @@ class GeneratorForEager:
     
     def infer(self, sentence):
         # Encode
+# (libai) root@training-notebook-cf02d3-cf02d3-jupyter-master-0:/workspace/CQL_BERT/libai/projects/token_classification# python infer.py
+# loaded library: /usr/lib/x86_64-linux-gnu/libibverbs.so.1
+# Distributed env is not set up, configure it by default (single node, single gpu).
+# Please set `train.dist.pipeline_num_layers` if you want to train with pipeline parallelism, otherwise just ignore it.
+# 输入：
+# 我是陈巧玲
+# {'word': '我', 'tag': 'O', 'confidence': 0.9269649386405945}
+#  {'word': '是', 'tag': 'O', 'confidence': 0.922939658164978} 
+#  {'word': '陈', 'tag': 'O', 'confidence': 0.9178687334060669} 
+#  {'word': '巧', 'tag': 'O', 'confidence': 0.9270167946815491} 
+#  {'word': '玲', 'tag': 'O', 'confidence': 0.9398284554481506}
         sentence = " ".join([word for word in sentence])
         tokens_list = self.tokenizer.tokenize(sentence)
        
